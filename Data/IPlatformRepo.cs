@@ -8,7 +8,7 @@ namespace RedisAPI.Data
 
         Platform? GetPlatformById(string platformId);
 
-        IEnumerable<Platform> GetAllPlatforms();
+        IEnumerable<Platform>? GetAllPlatforms();
 
         void RemovePlatformById(string platformId);
 

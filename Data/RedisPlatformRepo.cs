@@ -23,11 +23,23 @@ namespace RedisAPI.Data
             var serializedPlatform = JsonSerializer.Serialize(platform);
 
             db.StringSet(platform.Id, serializedPlatform);
+            db.SetAdd("PlatformSet", serializedPlatform);
         }
 
-        public IEnumerable<Platform> GetAllPlatforms()
+        public IEnumerable<Platform>? GetAllPlatforms()
         {
-            throw new NotImplementedException();
+            var db = redisMultiplexer.GetDatabase();
+
+            var completeSet = db.SetMembers("PlatformSet");
+
+            if (completeSet.Length > 0)
+            {
+                var obj = Array.ConvertAll(completeSet, val => JsonSerializer.Deserialize<Platform>(val!)).ToList();
+
+                return obj!;
+            }
+
+            return null;
         }
 
         public Platform? GetPlatformById(string platformId)
