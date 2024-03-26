@@ -46,6 +46,14 @@ app.MapPost("/platform", (Platform platform, IPlatformRepo repo) =>
 .WithName("SetPlatform")
 .WithOpenApi();
 
+app.MapGet("/platforms", (IPlatformRepo repo) =>
+{
+    var platforms = repo.GetAllPlatforms();
+
+    return Results.Ok(platforms);
+})
+.WithName("GetAllPlatforms")
+.WithOpenApi();
 
 
 app.Run();
