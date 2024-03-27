@@ -10,8 +10,8 @@ namespace RedisAPI.Data
 
         IEnumerable<Platform>? GetAllPlatforms();
 
-        void RemovePlatformById(string platformId);
+        bool RemovePlatformById(string platformId);
 
-        void ChangePlatformById(string platformId); // TODO: Watch CRUD operations api for REDIS
+        Platform? ChangePlatformById(string platformId, Platform platform); // TODO: Watch CRUD operations api for REDIS
     }
 }

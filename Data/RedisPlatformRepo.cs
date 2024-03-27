@@ -6,9 +6,25 @@ namespace RedisAPI.Data
 {
     public class RedisPlatformRepo(IConnectionMultiplexer redisMultiplexer) : IPlatformRepo
     {
-        public void ChangePlatformById(string platformId)
+        public Platform? ChangePlatformById(string platformId, Platform platform)
         {
-            throw new NotImplementedException();
+            var db = redisMultiplexer.GetDatabase();
+
+            var platformObj = db.HashGet("hashplatform", platformId);
+
+            if (!string.IsNullOrEmpty(platformObj))
+            {
+                var serializedPlatform = JsonSerializer.Serialize(platform);
+
+                db.HashSet("hashplatform", [new HashEntry(platformId, serializedPlatform)]);
+
+                var createdPlatform = db.HashGet("hashplatform", platformId);
+
+                return JsonSerializer.Deserialize<Platform>(createdPlatform!);
+            }
+
+            return null;
+
         }
 
         public void CreatePlatform(Platform platform)
@@ -22,19 +38,23 @@ namespace RedisAPI.Data
 
             var serializedPlatform = JsonSerializer.Serialize(platform);
 
-            db.StringSet(platform.Id, serializedPlatform);
-            db.SetAdd("PlatformSet", serializedPlatform);
+            // db.StringSet(platform.Id, serializedPlatform);
+            // db.SetAdd("PlatformSet", serializedPlatform);
+
+            db.HashSet("hashplatform", [new HashEntry(platform.Id, serializedPlatform)]);
         }
 
         public IEnumerable<Platform>? GetAllPlatforms()
         {
             var db = redisMultiplexer.GetDatabase();
 
-            var completeSet = db.SetMembers("PlatformSet");
+            // var completeSet = db.SetMembers("PlatformSet");
 
-            if (completeSet.Length > 0)
+            var completeHash = db.HashGetAll("hashplatform");
+
+            if (completeHash.Length > 0)
             {
-                var obj = Array.ConvertAll(completeSet, val => JsonSerializer.Deserialize<Platform>(val!)).ToList();
+                var obj = Array.ConvertAll(completeHash, val => JsonSerializer.Deserialize<Platform>(val.Value!)).ToList();
 
                 return obj!;
             }
@@ -46,7 +66,9 @@ namespace RedisAPI.Data
         {
             var db = redisMultiplexer.GetDatabase();
 
-            var platform = db.StringGet(platformId);
+            // var platform = db.StringGet(platformId);
+
+            var platform = db.HashGet("hashplatform", platformId);
 
             if (!string.IsNullOrEmpty(platform))
             {
@@ -56,9 +78,18 @@ namespace RedisAPI.Data
             return null;
         }
 
-        public void RemovePlatformById(string platformId)
+        public bool RemovePlatformById(string platformId)
         {
-            throw new NotImplementedException();
+            var db = redisMultiplexer.GetDatabase();
+
+            if (db.HashGet("hashplatform", platformId).HasValue)
+            {
+                db.HashDelete("hashplatform", platformId);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

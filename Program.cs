@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Http.HttpResults;
 using RedisAPI.Data;
 using RedisAPI.Models;
@@ -53,6 +54,24 @@ app.MapGet("/platforms", (IPlatformRepo repo) =>
     return Results.Ok(platforms);
 })
 .WithName("GetAllPlatforms")
+.WithOpenApi();
+
+app.MapPut("/platform", (string platformId, Platform platform, IPlatformRepo repo) =>
+{
+    var changedPlatform = repo.ChangePlatformById(platformId, platform);
+
+    return Results.Ok(changedPlatform);
+})
+.WithName("ChangePlatformById")
+.WithOpenApi();
+
+app.MapDelete("/platform", (string id, IPlatformRepo repo) =>
+{
+    var result = repo.RemovePlatformById(id);
+
+    return result ? Results.NoContent() : Results.BadRequest();
+})
+.WithName("DeletePlatfrom")
 .WithOpenApi();
 
 
